@@ -46,18 +46,16 @@ export default {
     // TODO: get ahold of the db using readDb();
     const db = await readDb();
     // TODO: find the INDEX of the tip in the db whose id & userId match the incoming id & userId
-    let index = -1;
-    for (let i = 0; i < length(db.tips); i++) {
-      if (db.tips[i].id === id && db.tips[i].userId === userId) {
-        index = i;
-      }
-    }
+    const index = db.tips.findIndex(
+      (tip) => tip.id === id && tip.userId === userId
+    );
+
     // TODO: if there is no index (-1), return false.
-    if (index == -1) {
+    if (index === -1) {
       return false;
     }
     // TODO: otherwise, use splice to delete from db.tips the tip based on the index
-    db.tips.splice(index);
+    db.tips.splice(index, 1);
     // TODO: write changes to database with await writeDb(db)
     await writeDb(db);
     // TODO: return true

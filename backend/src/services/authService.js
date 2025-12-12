@@ -3,30 +3,32 @@ import crypto, { randomUUID } from "node:crypto";
 import { readDb, writeDb } from "../../database/database.js";
 import { findPackageJSON } from "node:module";
 import { profileEnd } from "node:console";
-
-const JWT_SECRET = "secret";
+import { JWT_SECRET } from "../util/util.js";
 
 export default {
   async register({ username, password, profilePicture }) {
     // TODO: get ahold of the db using readDb();
     const db = await readDb();
     // TODO: check if there is an existing user with the same username
-    const foundUser = db.users.find(
-      (user) => user.username === username && user.password === password
-    );
+    const foundUser = db.users.find((user) => user.username === username);
     // TODO: if there is, do the following:
     //       - construct a new Error("Username already taken");
     //       - set the statusCode of that error object to 400
     //       - throw the err
-    if (!foundUser) {
-      user = { id: randomUUID(), username, password, profilePicture };
-      db.users.push(user);
-      await writeDb(db);
-    } else {
+    if (foundUser) {
       const error = new Error("Username already taken");
-      error.statuscode = 400;
+      error.statusCode = 400;
       throw error;
     }
+
+    let user = {
+      id: randomUUID(),
+      username: username,
+      password: password,
+      profilePicture: profilePicture || "",
+    };
+    db.users.push(user);
+    await writeDb(db);
     // TODO: otherwise, create a user object. A user has:
     //       - id: a random string-based id (crypto.randomUUID())
     //       - username: a username
@@ -39,8 +41,8 @@ export default {
     return {
       returnUser: {
         id: user.id,
-        username: username,
-        profilePicture: profilePicture,
+        username: user.username,
+        profilePicture: user.profilePicture,
       },
     };
   },
@@ -54,7 +56,7 @@ export default {
     );
     if (!foundUser) {
       const error = new Error("Invalid Username or password");
-      error.statuscode = 401;
+      error.statusCode = 401;
       throw error;
     }
     const token = jwt.sign(
